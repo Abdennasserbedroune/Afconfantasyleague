@@ -1,0 +1,5 @@
+{
+  "crons": [
+    { "path": "/api/cron/score-slates", "schedule": "0 */2 * * *" }
+  ]
+}

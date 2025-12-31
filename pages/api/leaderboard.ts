@@ -1,55 +1,38 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { LeaderboardEntry } from '@/types';
+import prisma from '@/lib/prisma';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse<LeaderboardEntry[]>) {
-  const mockData: LeaderboardEntry[] = [
-    {
-      rank: 1,
-      teamName: 'Thunder FC',
-      totalPoints: 245,
-      slatesPlayed: 5,
-      lastUpdate: new Date().toISOString()
-    },
-    {
-      rank: 2,
-      teamName: 'Eagles United',
-      totalPoints: 230,
-      slatesPlayed: 5,
-      lastUpdate: new Date().toISOString()
-    },
-    {
-      rank: 3,
-      teamName: 'Lions XI',
-      totalPoints: 215,
-      slatesPlayed: 5,
-      lastUpdate: new Date().toISOString()
-    },
-    {
-      rank: 4,
-      teamName: 'My Awesome Team',
-      totalPoints: 198,
-      slatesPlayed: 4,
-      lastUpdate: new Date().toISOString(),
-      isMyTeam: true
-    },
-    {
-      rank: 5,
-      teamName: 'Champions Squad',
-      totalPoints: 190,
-      slatesPlayed: 5,
-      lastUpdate: new Date().toISOString()
-    }
-  ];
-
-  for (let i = 6; i <= 50; i++) {
-    mockData.push({
-      rank: i,
-      teamName: `Team ${i}`,
-      totalPoints: Math.max(50, 180 - i * 3),
-      slatesPlayed: Math.floor(Math.random() * 5) + 1,
-      lastUpdate: new Date().toISOString()
-    });
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  res.status(200).json(mockData);
+  try {
+    const entries = await prisma.entry.findMany({
+      include: { totalPoints: true },
+      orderBy: {
+        totalPoints: {
+          total: 'desc'
+        }
+      }
+    });
+
+    const leaderboard = entries.map((entry, idx) => ({
+      rank: idx + 1,
+      entryId: entry.id,
+      displayName: entry.displayName,
+      total: entry.totalPoints?.total || 0,
+      slatesPlayed: 0
+    }));
+
+    for (const item of leaderboard) {
+      const slatesPlayed = await prisma.slateLineup.count({
+        where: { entryId: item.entryId }
+      });
+      item.slatesPlayed = slatesPlayed;
+    }
+
+    return res.status(200).json(leaderboard);
+  } catch (error) {
+    return res.status(500).json({ error: 'Failed to fetch leaderboard' });
+  }
 }
