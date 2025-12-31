@@ -1,14 +1,19 @@
-/* Basic app styling (keep intentionally lightweight). */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+/* AFCON 2025 Color System */
 :root {
-  --bg: #0b1020;
-  --card: #111a33;
-  --muted: #94a3b8;
-  --text: #e5e7eb;
-  --border: rgba(148, 163, 184, 0.25);
-  --accent: #7c3aed;
-  --accent-2: #22c55e;
-  --danger: #ef4444;
+  --bg: #0B0F14;
+  --surface: #111826;
+  --surface-2: #1A2636;
+  --text: #EAF0F6;
+  --muted: #A9B4C1;
+  --gold: #E0B700;
+  --green: #189E4B;
+  --red: #D21034;
+  --blue: #1D4ED8;
+  --border: #2D3F54;
 }
 
 * {
@@ -19,12 +24,9 @@ html,
 body {
   padding: 0;
   margin: 0;
-  background: radial-gradient(1200px 800px at 10% 0%, rgba(124, 58, 237, 0.18), transparent),
-    radial-gradient(900px 500px at 90% 10%, rgba(34, 197, 94, 0.12), transparent),
-    var(--bg);
+  background: var(--bg);
   color: var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial,
-    "Apple Color Emoji", "Segoe UI Emoji";
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 
 a {
@@ -43,7 +45,7 @@ button {
 }
 
 .card {
-  background: rgba(17, 26, 51, 0.72);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.35);
@@ -83,12 +85,15 @@ button {
 }
 
 .btnPrimary {
-  border-color: rgba(124, 58, 237, 0.65);
-  background: rgba(124, 58, 237, 0.22);
+  border-color: var(--gold);
+  background: var(--gold);
+  color: var(--bg);
+  font-weight: 600;
 }
 
 .btnPrimary:hover {
-  background: rgba(124, 58, 237, 0.3);
+  border-color: #c9a400;
+  background: #c9a400;
 }
 
 .table {
@@ -130,9 +135,9 @@ button {
 }
 
 .highlightRow {
-  outline: 2px solid rgba(34, 197, 94, 0.45);
+  outline: 2px solid rgba(24, 158, 75, 0.45);
   outline-offset: -2px;
-  background: rgba(34, 197, 94, 0.1);
+  background: rgba(24, 158, 75, 0.1);
 }
 
 .pageHeader {
