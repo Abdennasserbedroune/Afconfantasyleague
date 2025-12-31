@@ -1,0 +1,5 @@
+-- Generator schema for prisma-client-js
+-- prisma version: 5.22.0
+
+CREATE TYPE "FixtureStatus" AS ENUM ('NS', 'LIVE', 'FT');
+CREATE TYPE "SlateStatus" AS ENUM ('OPEN', 'LOCKED', 'SCORED');

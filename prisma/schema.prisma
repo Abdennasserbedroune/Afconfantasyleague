@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum FixtureStatus {
+  NS
+  LIVE
+  FT
+}
+
+enum SlateStatus {
+  OPEN
+  LOCKED
+  SCORED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  passHash  String
+  createdAt DateTime @default(now())
+
+  entry     Entry?
+}
+
+model Entry {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  displayName String
+  createdAt   DateTime @default(now())
+
+  user        User                @relation(fields: [userId], references: [id])
+  lineups     SlateLineup[]
+  totalPoints EntryTotalPoints?
+}
+
+model Team {
+  id   String @id @default(cuid())
+  name String @unique
+
+  players       Player[]
+  homeFixtures  Fixture[] @relation("HomeTeam")
+  awayFixtures  Fixture[] @relation("AwayTeam")
+}
+
+model Player {
+  id       String  @id @default(cuid())
+  teamId   String
+  name     String
+  position String  // GK, DEF, MID, FWD
+  isActive Boolean @default(true)
+
+  team            Team                  @relation(fields: [teamId], references: [id])
+  lineupPicks     SlateLineupPick[]
+  fixtureStats    PlayerFixtureStat[]
+
+  @@unique([teamId, name])
+}
+
+model Fixture {
+  id         String        @id @default(cuid())
+  kickoffAt  DateTime
+  status     FixtureStatus @default(NS)
+  homeTeamId String
+  awayTeamId String
+
+  homeTeam  Team               @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam  Team               @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  slates    SlateFixture[]
+  stats     PlayerFixtureStat[]
+}
+
+model Slate {
+  id        String     @id @default(cuid())
+  name      String
+  dateLocal DateTime
+  lockAt    DateTime
+  status    SlateStatus @default(OPEN)
+
+  fixtures SlateFixture[]
+  lineups  SlateLineup[]
+
+  @@unique([dateLocal])
+}
+
+model SlateFixture {
+  slateId   String
+  fixtureId String
+
+  slate   Slate   @relation(fields: [slateId], references: [id])
+  fixture Fixture @relation(fields: [fixtureId], references: [id])
+
+  @@id([slateId, fixtureId])
+}
+
+model SlateLineup {
+  id        String   @id @default(cuid())
+  entryId   String
+  slateId   String
+  createdAt DateTime @default(now())
+  lockedAt  DateTime?
+
+  entry  Entry               @relation(fields: [entryId], references: [id])
+  slate  Slate               @relation(fields: [slateId], references: [id])
+  picks  SlateLineupPick[]
+  points SlateEntryPoints?
+
+  @@unique([entryId, slateId])
+}
+
+model SlateLineupPick {
+  id        String  @id @default(cuid())
+  lineupId  String
+  playerId  String
+  isCaptain Boolean @default(false)
+
+  lineup SlateLineup @relation(fields: [lineupId], references: [id])
+  player Player      @relation(fields: [playerId], references: [id])
+
+  @@unique([lineupId, playerId])
+}
+
+model PlayerFixtureStat {
+  id        String @id @default(cuid())
+  fixtureId String
+  playerId  String
+
+  minutes       Int     @default(0)
+  goals         Int     @default(0)
+  assists       Int     @default(0)
+  cleanSheet    Boolean @default(false)
+  goalsConceded Int     @default(0)
+  saves         Int     @default(0)
+  pensSaved     Int     @default(0)
+  pensMissed    Int     @default(0)
+  yellow        Int     @default(0)
+  red           Int     @default(0)
+  ownGoal       Int     @default(0)
+
+  fixture Fixture @relation(fields: [fixtureId], references: [id])
+  player  Player  @relation(fields: [playerId], references: [id])
+
+  @@unique([fixtureId, playerId])
+}
+
+model SlateEntryPoints {
+  lineupId  String @id
+  points    Int
+  computedAt DateTime @default(now())
+
+  lineup SlateLineup @relation(fields: [lineupId], references: [id])
+}
+
+model EntryTotalPoints {
+  entryId   String @id
+  total     Int
+  updatedAt DateTime @updatedAt
+
+  entry Entry @relation(fields: [entryId], references: [id])
+}
